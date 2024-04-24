@@ -1,0 +1,45 @@
+.custom-container {
+  max-width: 400px;
+  margin: 40px auto;
+  background-color: #fff; /* White container */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  z-index: 99999;
+}
+
+
+.form-group {
+  margin-bottom: 20px;
+}
+label {
+  display: block;
+  font-weight: 400;
+  margin-bottom: 5px;
+}
+
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.sign-in-btn{
+  width: 100%;
+}
+
+.sign-up-header{
+  font-weight: 700 !important;
+  display: inline !important;
+  width: 70%;
+}
+.sign-in-header{
+  font-weight: 700 !important;
+  font-size: 1.2rem;
+  color:var(--main-btn-color);
+}

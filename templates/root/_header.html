@@ -1,0 +1,68 @@
+{% extends 'root/_base.html' %}
+
+{% block content %}
+<div class="container-fluid sticky-top header-nav" id="headerNav">
+    <header class="blog-header py-3">
+      <div class="row flex-nowrap justify-content-between align-items-center">
+        <div class="col-4 pt-1">
+          <a class="text-muted blog-header-logo" href="{% url 'shop:index' %}"><h1>BookPULSE</h1></a>
+        </div>
+        <div class="col-4 text-center">
+          <div class="form-inline search-form">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text search-icon">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+                <input type="text" class="form-control custom-input" name="" id="" placeholder="Search books by title, author, or ISBN">
+            </div>
+          </div>
+        </div>
+        <div class="col-4 d-flex justify-content-end align-items-center">
+          <div class="custom-dropdown btn btn-sm ">
+            {% if user.is_authenticated %}
+            <button class="custom-dropdown-button">{{user.email}} <i class="fas fa-caret-down"></i></button>
+            <div class="custom-dropdown-content">
+              <a href="{% url 'user:profile' %}">Account</a>
+              <a href="#">Wishlist <span> - 71</span></a>
+              <a href="#">Help & Support</a>
+              <a href="{% url 'user:logout' %}">Logout</a>
+            </div>
+            {% else %}
+            <button class="custom-dropdown-button">Create Account  <i class="fas fa-caret-down"></i></button>
+            <div class="custom-dropdown-content">
+                <a href="{% url 'user:register' %}">Sign Up</a>
+                <a href="#">Wishlist <span> - 20</span></a>
+                <a href="#">Help & Support</a>
+                <a href="{% url 'user:login' %}">Sign In</a>
+            </div>
+            {% endif %}
+          </div>
+            <div class="cart-icon">
+              <i class="fas fa-shopping-cart"></i>
+              <span class="item-count">3</span>
+            </div>
+
+        </div>
+      </div>
+    </header>
+
+    
+    <div class="nav-scroller py-1 mb-2">
+        <nav class="nav d-flex justify-content-between">
+          <a class="p-2 nav-item" href="#">All</a>
+          <a class="p-2 nav-item" href="#">New Release</a>
+          <a class="p-2 nav-item" href="#">Bestsellers</a>
+          <a class="p-2 nav-item" href="#">Recommended</a>
+          <a class="p-2 nav-item" href="#">Fiction</a>
+          <a class="p-2 nav-item" href="#">Business</a>
+          <a class="p-2 nav-item" href="#">Politics</a>
+          <a class="p-2 nav-item" href="#">Textbooks</a>
+          <a class="p-2 nav-item" href="#">Research Papers</a>
+          <a class="p-2 nav-item" href="#">Health</a>
+
+        </nav>
+    </div>
+</div>
+{% endblock %}
