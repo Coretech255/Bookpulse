@@ -1,10 +1,46 @@
 {% extends 'root/_base.html' %}
 {% load static %}
 {% block title %} Home {% endblock%}
+{% block style %} <link rel="stylesheet" href="{% static 'css/homepage.css' %}"> {% endblock %}
 
 {% block content%}
-    {% include 'root/_header.html' %}
-    <div class="container-fluid">
-        <h1>Home</h1>
-    </div>
+        <section class="container-fluid hero-section text-center">
+            <div class="hero-container">
+                <h2>Discover the Rhythm of knowledge with Bookpulse</h2>
+                <p class="lead">Where every page turn resonates with your heartbeat.</p>
+                <div class="d-flex justify-content-between btn-main-container">
+                    <button class="btn btn-main" onclick="exploreBooks()">Explore Books</button>
+                    <button class="btn btn-main">Feel the pulse</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="container-fluid new-release">
+            <h3 class="new-release-h1">New Release</h3>
+            <div class="row new-release-row ">
+                {% for product in products %}
+                    <div class="col col-md-2">
+                        <div class="card" style="width: 11rem;">
+                            <img class="card-img-top" src="{{ product.cover_photo.url }}" alt="Card image cap">
+                            <div class="card-body">
+                            <a href="{% url 'shop:product_detail' product.id %}" class="card-text text text-center">{{ product.title|truncatechars:20 }} - by 
+                                {% for author in product.author.all %}
+                                    {{ author }}
+                                {% endfor %}
+                            </a>
+                            <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
+                            <div class="d-flex justify-content-between price-cart">
+                                <p class="card-price text-center h6"><i class="fa-solid fa-naira-sign"></i> {{ product.price }}</p>
+                                <div class="icon">
+                                    <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </section>
+
 {% endblock %}

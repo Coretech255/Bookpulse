@@ -1,0 +1,91 @@
+.hero-section{
+    position: relative;
+    background: url('../images/hero-image.jpg') no-repeat center center;
+    background-size: cover;
+    padding: 100px 0;
+    height: 70vh;
+    color: var(--main-text-color-white) !important;
+
+}
+
+.hero-section::before{
+    content: '';
+    position:absolute;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1;
+}
+
+.hero-container{
+    position: relative;
+    z-index:2;
+    margin-top: 50px;
+}
+
+.hero-container h2{
+    font-weight: 700 !important;
+}
+
+.hero-container p{
+    font-weight: 500 !important;
+}
+
+.btn-main-container{
+    width: 22% !important;
+    margin: auto !important;
+}
+
+.btn-main{
+    color: var(--main-text-color-white) !important;
+}
+
+.new-release{
+    margin-top: 50px !important;
+}
+
+
+.new-release-row .col img{
+    width: 11rem !important;
+    height: 12rem !important;
+}
+
+.card{
+    border: none !important;
+    position: relative !important;
+}
+
+.card-body{
+    padding: 5px !important;
+    height: 90px !important;
+}
+
+.card-text{
+ 
+}
+
+.card-rating{
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    background-color: var(--main-btn-color-light);
+    color: var(--main-text-color-white);
+    padding: 5px;
+}
+
+.price-cart{
+    border-top: 1px solid rgba(128, 128, 128, 0.137);
+
+    padding: 7px; 
+}
+
+.fa-cart-shopping{
+    font-size: 1.5rem !important;
+    color: var(--main-btn-color);
+}
+
+.fa-plus{
+    font-size: small !important;
+}

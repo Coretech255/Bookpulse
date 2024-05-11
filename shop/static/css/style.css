@@ -8,7 +8,7 @@
 
 
   --main-btn-color: #c66e4e;
-  --main-btn-color-light: rgba(198, 110, 78, 0.11);
+  --main-btn-color-light: hsla(16, 51%, 54%, 0.603);
   --main-btn-color-sm: rgb(106, 67, 37);
   --main-btn-color-md: #60809e;
 }
@@ -41,6 +41,11 @@ h1, h2, h3, h4, h5, h6 {
 .btn{
   background: var(--main-btn-color) !important;
 }
+
+.btn:hover{
+  background: var(--main-btn-color-sm) !important;
+}
+
 
 a,button,.btn{
   font-family: "Lora" !important;
@@ -96,6 +101,10 @@ p,::placeholder,span,label{
   padding: 10px 20px;
   border: none;
   cursor: pointer;
+}
+
+.custom-dropdown-button:hover{
+  background: var(--main-btn-color-sm) !important;
 }
 
 /* Dropdown content (hidden by default) */
