@@ -30,9 +30,14 @@ class Product(models.Model):
     cover_photo = models.ImageField()
     digital_book = models.FileField(upload_to='books/', null=True, blank=True)
     categories = models.ManyToManyField(Category, related_name='products')
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
 
     def __str__(self):
         return self.title
+    
 
 
 class Rating(models.Model):

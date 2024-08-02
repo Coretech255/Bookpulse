@@ -37,10 +37,10 @@
             </div>
             {% endif %}
           </div>
-            <div class="cart-icon">
+            <a  href="{% url 'cart:cart_detail' %}" class="cart-icon">
               <i class="fas fa-shopping-cart"></i>
-              <span class="item-count">3</span>
-            </div>
+              <span class="item-count">{{ request.session.cart|length }}</span>
+            </a>
 
         </div>
       </div>

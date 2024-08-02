@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     #Custom Apps
     'shop.apps.ShopConfig',
     'user.apps.UserConfig',
+    'cart.apps.CartConfig',
+    'orders.apps.OrdersConfig',
+    'payment.apps.PaymentConfig',
 ]
 
 MIDDLEWARE = [
@@ -154,3 +157,12 @@ AUTH_USER_MODEL = 'user.CustomUser'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = ['user.backends.EmailBackend']
+
+CART_SESSION_ID='cart'
+
+# Stripe settings
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51PSOB4FGx8oj0hM9rmjs5QpyeDmFrjJvbyIwJ00HPUBJEOkIUHc9X4VASJZ0toUcOxAyYLd9THljjh9GHeGljzcD00dJQRvJvW' # Publishable key
+STRIPE_SECRET_KEY = 'sk_test_51PSOB4FGx8oj0hM9VvZ6UrMNhqHGJ3lAy3SWMREsgjAeV6YN35JxBAd2P2qHOzGXwzjJWJ7jxjmHPKVw00wi6CnG00Wng7MJUA' # Secret
+STRIPE_API_VERSION = '2024-04-10'
+
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
