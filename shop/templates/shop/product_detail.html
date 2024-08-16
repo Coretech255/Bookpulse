@@ -8,16 +8,14 @@
     <div class="row">
         <div class="col-md-3">
             <div class="cover-image add-to-cart">
-                <img class="card-img-top" src="{{ product.cover_photo.url }}" alt="Card image cap">
+                <img class="card-img-top" src="{{ product.cover_photo_url }}" alt="Card image cap">
             </div>
         </div>
         <div class="col-md-9">
             <div class="detail-text">
                 <h1 class="h3" style="font-weight: 700;">{{ product.title }} 
                     <span class="h5">by
-                        {% for author in product.author.all %}
-                            {{ author }}
-                        {% endfor %}
+                        {{ product.author }}
                     </span><span class="text-muted h5">(Author)</span>
                 </h1>
                 <p class="" style="font-size: .9rem; font-weight: 500; line-height: 1.7rem;">{{ product.description }}</p>
@@ -29,7 +27,7 @@
                             {{ cart_product_form }}
                         </div>
                         {% csrf_token %}
-                        <button type="submit" style="width: 200px" class="btn btn-md text-white" value="Add to cart">Add to Cart</button>
+                        <button type="submit" style="width: 200px" class="btn btn-md text-white add-to-cart-button" value="Add to cart">Add to Cart</button>
                     </form>
                 </div>
             </div>
@@ -45,7 +43,7 @@
                 <p>{{ rating.review}}</p>
                 <small>{{ rating.timestamp }}</small>
             </li>
-            {% endfor %}
+        {% endfor %}
      </ul>
     <!-- Display existing reviews-->
 
@@ -55,12 +53,10 @@
         {% for related_product in related_products %}
         <div class="col col-md-2">
             <div class="card" style="width: 11rem;">
-                <img class="card-img-top" src="{{ related_product.cover_photo.url }}" alt="Card image cap">
+                <img class="card-img-top" src="{{ related_product.cover_photo_url }}" alt="Card image cap">
                 <div class="card-body">
                 <a href="{% url 'shop:product_detail' related_product.id %}" class="card-text text text-center">{{ related_product.title|truncatechars:20 }} - by 
-                    {% for author in related_product.author.all %}
-                        {{ author }}
-                    {% endfor %}
+                    {{ related_product.author }}
                 </a>
                 <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
                 <div class="d-flex justify-content-between price-cart">
@@ -77,6 +73,8 @@
     <!-- Related Books Section -->
 
 <!-- Review Form -->
+ <br>
+ <br>
  <h2>Leave a Review</h2>
  <form method="post">
     {% csrf_token %}
@@ -86,4 +84,95 @@
 <!-- Review Form -->
 </div>
 
+
+<!--script>
+    console.log('websocket')
+
+    // Ensure that productID and userID are correctly initialized
+    const productID = {{ product.id|default:"null" }};
+    const userID = {{ user.id|default:"null" }};
+
+    // Check if the variables are properly defined
+    if (productID !== "null" && userID !== "null") {
+        const socket = new WebSocket(
+            'ws://' + window.location.host + '/ws/interactions/' + productID + '/'
+        );
+
+        socket.onopen = function(event) {
+            console.log('WebSocket is connected.');
+        };
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.product_id == productID) {
+                console.log('Updated Rating: ', data.rating);
+                // Ensure the element with id='rating' exists in your HTML
+                const ratingElement = document.getElementById('rating');
+                if (ratingElement) {
+                    ratingElement.innerText = 'Rating: ' + data.rating;
+                }
+            }
+        };
+
+        // Listen for clicks specifically on product-related interactions
+        document.querySelector('.add-to-cart-button').addEventListener('click', function(event) {
+            socket.send(JSON.stringify({
+                'type': 'click',
+                'product_id': productID,
+            }));
+        });
+
+        // Monitor time spent on the page
+        let timeSpent = 0;
+        setInterval(function() {
+            timeSpent += 1;
+            socket.send(JSON.stringify({
+                'type': 'time_spent',
+                'product_id': productID,
+                'value': timeSpent
+            }));
+            timeSpent = 0;
+        }, 60000);
+
+        // Monitor scroll depth
+        window.onscroll = function() {
+            let scrollDepth = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+            socket.send(JSON.stringify({
+                'type': 'scroll',
+                'product_id': productID,
+                'value': scrollDepth * 100  // send as percentage
+            }));
+        };
+
+        // Handle "Add to Cart" button click
+        document.querySelector('.add-to-cart-button').addEventListener('click', function() {
+            socket.send(JSON.stringify({
+                'type': 'add_to_cart',
+                'product_id': productID,
+            }));
+        });
+
+        // Handle "Purchase" button click if it exists
+        const purchaseButton = document.querySelector('.purchase-button');
+        if (purchaseButton) {
+            purchaseButton.addEventListener('click', function() {
+                socket.send(JSON.stringify({
+                    'type': 'purchase',
+                    'product_id': productID,
+                }));
+            });
+        }
+    } else {
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+
+        socket.onclose = function(event) {
+            console.log('WebSocket connection closed:', event);
+        };
+
+    }
+</script-->
+
 {% endblock content%}
+

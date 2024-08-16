@@ -19,22 +19,20 @@
             <h3 class="new-release-h1">New Release</h3>
             <div class="row new-release-row ">
                 {% for product in products %}
-                    <div class="col col-md-2">
+                    <div class="col col-md-2 mb-5">
                         <div class="card" style="width: 11rem;">
-                            <img class="card-img-top" src="{{ product.cover_photo.url }}" alt="Card image cap">
+                            <img class="card-img-top" src="{{ product.cover_photo_url }}" alt="Card image cap">
                             <div class="card-body">
                             <a href="{% url 'shop:product_detail' product.id %}" class="card-text text text-center">{{ product.title|truncatechars:20 }} - by 
-                                {% for author in product.author.all %}
-                                    {{ author }}
-                                {% endfor %}
+                                {{ product.author }} | <i class="fa-solid fa-dollar-sign"></i> {{ product.price }}
                             </a>
                             <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
-                            <div class="d-flex justify-content-between price-cart">
-                                <p class="card-price text-center h6"><i class="fa-solid fa-naira-sign"></i> {{ product.price }}</p>
+                            <!--div class="d-flex justify-content-between price-cart">
+                                <p class="card-price text-center h6"><i class="fa-solid fa-dollar-sign"></i> {{ product.price }}</p>
                                 <div class="icon">
                                     <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
                                 </div>
-                            </div>
+                            </div-->
                             </div>
                         </div>
                     </div>
@@ -44,5 +42,4 @@
         </div>
 
         </section>
-
 {% endblock %}

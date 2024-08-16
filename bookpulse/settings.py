@@ -39,6 +39,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,7 +54,21 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'orders.apps.OrdersConfig',
     'payment.apps.PaymentConfig',
+
+    #Third Party Apps
+    'import_export',
+    
 ]
+
+# Define the ASGI application
+ASGI_APPLICATION = 'bookpulse.asgi.application'
+
+# Channels layer settings
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -166,3 +182,4 @@ STRIPE_SECRET_KEY = 'sk_test_51PSOB4FGx8oj0hM9VvZ6UrMNhqHGJ3lAy3SWMREsgjAeV6YN35
 STRIPE_API_VERSION = '2024-04-10'
 
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
+

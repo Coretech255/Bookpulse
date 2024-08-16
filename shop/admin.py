@@ -1,7 +1,11 @@
+import logging
 from django.contrib import admin
-from .models import Product, Category, Rating, Author
+from import_export.admin import ImportExportModelAdmin
+from .models import Product, Category, Rating, Author, Interaction
 
-class ProductAdmin(admin.ModelAdmin):
+logger = logging.getLogger(__name__)
+
+class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     # Customize how the user model is displayed on the admin dashboard
     list_display = ('title', 'isbn', 'price', 'publication_date')
     search_fields = ('title', 'author', 'isbn', 'publication_date')
@@ -14,24 +18,26 @@ class ProductAdmin(admin.ModelAdmin):
 admin.site.register(Product, ProductAdmin)
 
 
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
-
-admin.site.register(Category, CategoryAdmin)
-# Add a verbose name for the Category model
-Category._meta.verbose_name = "Book Category"
-Category._meta.verbose_name_plural = "Book Categories"
-
-class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'bio')
-
-admin.site.register(Author, AuthorAdmin)
-# Add a verbose name for the Author model
-Author._meta.verbose_name = "Book Author"
-Author._meta.verbose_name_plural = "Book Authors"
-
-class RatingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'product', 'rating', 'timestamp')
+class RatingAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    list_display = ('user', 'isbn', 'rating', 'timestamp')
     list_filter = ('timestamp',)
 
+    def before_import_row(self, row, **kwargs):
+        try:
+            # Perform checks or transformations here
+            if 'user' not in row or 'isbn' not in row:
+                raise ValueError("Missing user or isbn in import data.")
+        except Exception as e:
+            logger.error(f"Error processing row {row}: {e}")
+
+    def after_import_instance(self, instance, new, **kwargs):
+        # Log the instance for debugging
+        logger.debug(f"Processed instance: {instance}")
+
 admin.site.register(Rating, RatingAdmin)
+
+class InteractionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'likes', 'clicks',  'add_to_cart', 'timestamp')
+    list_filter = ('timestamp',)
+
+admin.site.register(Interaction, InteractionAdmin)

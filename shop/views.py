@@ -22,6 +22,11 @@ class ProductListView(ListView):
     template_name = 'shop/index.html'
     context_object_name = 'products'
 
+    def get_queryset(self):
+        # Fetch the first 5 products (you can adjust the number as needed)
+        return Product.objects.all()[:25]
+
+
 # DetailView - Display details of a single object
 class ProductDetailView(DetailView):
     model = Product

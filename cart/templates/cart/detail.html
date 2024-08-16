@@ -23,8 +23,8 @@
               <tr>
                 <!--th scope="row">1</th-->
                 <td>
-                    <a href="{{ product.cover_photo.url }}" class="thumbnail">
-                        <img src="{% if product.cover_photo %}{{ product.cover_photo.url }}
+                    <a href="{{ product.cover_photo_url }}" class="thumbnail">
+                        <img src="{% if product.cover_photo_url %}{{ product.cover_photo_url }}
                         {% else %}{% static 'img/no_image.png' %}{% endif %}" style="
                         width: 50px; /* Set the desired width */
                         height: 50px; /* Set the desired height */
