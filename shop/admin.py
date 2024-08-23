@@ -2,6 +2,7 @@ import logging
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from .models import Product, Category, Rating, Author, Interaction
+from .resources import RatingResource
 
 logger = logging.getLogger(__name__)
 
@@ -19,25 +20,29 @@ admin.site.register(Product, ProductAdmin)
 
 
 class RatingAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    list_display = ('user', 'isbn', 'rating', 'timestamp')
+    resource_class = RatingResource
+    list_display = ('get_user_full_name', 'get_product_isbn', 'rating', 'timestamp')
     list_filter = ('timestamp',)
 
-    def before_import_row(self, row, **kwargs):
-        try:
-            # Perform checks or transformations here
-            if 'user' not in row or 'isbn' not in row:
-                raise ValueError("Missing user or isbn in import data.")
-        except Exception as e:
-            logger.error(f"Error processing row {row}: {e}")
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_full_name.short_description = 'User'
 
-    def after_import_instance(self, instance, new, **kwargs):
-        # Log the instance for debugging
-        logger.debug(f"Processed instance: {instance}")
+    def get_product_isbn(self, obj):
+        return obj.product.isbn
+    get_product_isbn.short_description = 'Product ISBN'
+    #list_display = ('user', 'product', 'rating', 'timestamp')
+    #list_filter = ('timestamp',)
+
+    def before_import_row(self, row, **kwargs):
+        logger.info(f"Processing row with Product ISBN: {row['product_isbn']}")
+        if not Product.objects.filter(isbn=row['product_isbn']).exists():
+            logger.error(f"Product with ISBN {row['product_isbn']} does not exist.")
 
 admin.site.register(Rating, RatingAdmin)
 
 class InteractionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'product', 'likes', 'clicks',  'add_to_cart', 'timestamp')
+    list_display = ('user', 'product', 'liked', 'clicks',  'added_to_cart', 'timestamp')
     list_filter = ('timestamp',)
 
 admin.site.register(Interaction, InteractionAdmin)

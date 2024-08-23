@@ -42,58 +42,46 @@ class Product(models.Model):
 class Interaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    likes = models.BooleanField(default=False)
+    liked = models.BooleanField(default=False)
     clicks = models.IntegerField(default=0)
     time_spent = models.FloatField(default=0.0)
-    add_to_cart = models.BooleanField(default=False)
+    added_to_cart = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.title} - Interaction"
+        return f"{self.user.email} - {self.product.title} - Interaction"
+    
+    def calculate_interaction_value(self):
+        if self.liked:
+            return 7.0
+        elif self.added_to_cart:
+            return 10.0
+        else:
+            return min(self.clicks * 3 + self.time_spent * 2 / 60, 5.0)
 
 
 
 class Rating(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
-    isbn = models.ForeignKey(Product, to_field='isbn', on_delete=models.SET_NULL, null=True, blank=True)
-    rating = models.DecimalField(max_digits=3, decimal_places=2)
+    product = models.ForeignKey(Product, to_field='isbn', on_delete=models.SET_NULL, null=True, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
     review = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ('user', 'isbn')
+    #class Meta:
+    #    unique_together = ('user', 'product', 'rating')
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} - {self.isbn.title} - {self.rating}"
+        return f"{self.user.first_name} {self.user.last_name} - {self.product.title} - {self.rating}"
 
-    def calculate_interaction_rating(self):
-        interactions = Interaction.objects.filter(user=self.user, product=self.product)
+    def update_rating(self, rating_value):
+        self.rating = min(round(rating_value, 1), 10.0)
+        self.save()
 
-        rating = 0
-        if self.rating.exists():
-            self.save()
-        elif interactions.exists():
-            for interaction in interactions:
-                if interaction.likes:
-                    rating += 4.0
-                if interaction.clicks > 0:
-                    rating += 3.0
-                if interaction.time_spent > 0:
-                    rating += interaction.time_spent / 60
-                if interaction.review:
-                    rating += 2.5
-                if interaction.purchased:
-                    rating += 5.0
-                if interaction.add_to_cart:
-                    rating += 4.5
-            
-            # Ensure the rating does not exceed 5.0
-            self.rating = min(round(rating, 2), 5.0)
-            self.save()
 
-    @classmethod
-    def update_or_create_rating(cls, user, product):
-        rating, created = cls.objects.get_or_create(user=user, product=product)
-        rating.calculate_interaction_rating()
-        return rating
+    #@classmethod
+    #def update_or_create_rating(cls, user, product):
+        #rating, created = cls.objects.get_or_create(user=user, product=product)
+        #rating.calculate_interaction_rating()
+        #return rating
 

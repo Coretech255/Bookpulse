@@ -36,7 +36,7 @@ def payment_process(request):
                     'currency':'usd',
                     'product_data':{
                         'name':item.product.title,
-                        'images':[item.product.cover_photo]
+                        'images':["http://images.amazon.com/images/P/1561568805.01.MZZZZZZZ.jpg"]
                     },
                 },
                 'quantity': item.quantity,

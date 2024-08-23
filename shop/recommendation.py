@@ -4,7 +4,8 @@ from .models import Rating
 def fetch_dataset():
     ratings = Rating.objects.all()
     rating_data = [
-        (rating.user.id, rating.product.isbn, rating.rating) 
+        (rating.user_id, rating.product.isbn, rating.rating) 
         for rating in ratings]
     
     return rating_data
+

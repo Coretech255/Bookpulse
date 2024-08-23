@@ -21,13 +21,16 @@
                 <p class="" style="font-size: .9rem; font-weight: 500; line-height: 1.7rem;">{{ product.description }}</p>
                 <p class="h6">Product Type: {{ product.type }}Digital</p>
                 <p class="h6">Book Rating: <i class="fa-solid fa-star mb-2"></i>5{{ product.rating }}/5</p>
+                <button onclick="registerInteraction('{{product.isbn}}', 'like')" class="btn btn-success" value="Like">Like</button>
                 <div class="" style="width:40% !important;">
                     <form action="{% url 'cart:cart_add' product.id %}" class="d-flex justify-content-between" method="post">
                         <div class="d-flex justify-content-between">
                             {{ cart_product_form }}
                         </div>
                         {% csrf_token %}
-                        <button type="submit" style="width: 200px" class="btn btn-md text-white add-to-cart-button" value="Add to cart">Add to Cart</button>
+                        <button type="submit" style="width: 200px" onclick="registerInteraction('{{product.isbn}}', 'add_to_cart')"
+                         class="btn btn-md text-white add-to-cart-button" value="Add to cart">Add to Cart</button>
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"> 
                     </form>
                 </div>
             </div>

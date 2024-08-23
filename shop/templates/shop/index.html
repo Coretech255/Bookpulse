@@ -23,7 +23,10 @@
                         <div class="card" style="width: 11rem;">
                             <img class="card-img-top" src="{{ product.cover_photo_url }}" alt="Card image cap">
                             <div class="card-body">
-                            <a href="{% url 'shop:product_detail' product.id %}" class="card-text text text-center">{{ product.title|truncatechars:20 }} - by 
+                            <a href="{% url 'shop:product_detail' product.isbn %}" 
+                            class="card-text text text-center click-interaction product-link" data-isbn="{{ product.isbn }}"
+                            onclick="registerInteraction('{{product.isbn}}', 'click')"
+                            >{{ product.title|truncatechars:20 }} - by 
                                 {{ product.author }} | <i class="fa-solid fa-dollar-sign"></i> {{ product.price }}
                             </a>
                             <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
@@ -34,6 +37,8 @@
                                 </div>
                             </div-->
                             </div>
+
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"> 
                         </div>
                     </div>
                 {% endfor %}
@@ -42,4 +47,8 @@
         </div>
 
         </section>
+
+
 {% endblock %}
+
+

@@ -14,7 +14,7 @@
             <ul class="list-group mb-3">
             {% for item in cart %}
                 <li class="list-group-item d-flex justify-content-between lh-condensed">
-                    <img src="{% if item.product.cover_photo %}{{ item.product.cover_photo.url }}
+                    <img src="{% if item.product.cover_photo_url %}{{ item.product.cover_photo_url }}
                     {% else %}{% static 'img/no_image.png' %}{% endif %}" style="
                     width: 50px; /* Set the desired width */
                     height: 50px; /* Set the desired height */

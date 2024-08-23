@@ -1,10 +1,11 @@
 from django.shortcuts import get_object_or_404, redirect
+from django.http import JsonResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from cart.forms import CartAddProductForm
 from .forms import RatingForm
 from django.contrib import messages
 from django.urls import reverse_lazy
-from .models import Product, Rating
+from .models import Product, Interaction, Rating
 from cart.cart import Cart
 from django.shortcuts import render
 
@@ -33,6 +34,10 @@ class ProductDetailView(DetailView):
     cart_product_form = CartAddProductForm()
     template_name = 'shop/product_detail.html'
     context_object_name = 'product'
+
+    def get_object(self):
+        isbn = self.kwargs.get("isbn")
+        return Product.objects.get(isbn=isbn)
 
     
     def get_context_data(self, **kwargs):
@@ -63,7 +68,40 @@ class ProductDetailView(DetailView):
         else:
             messages.error(request, "You need to be logged in to leave a review.")
             return redirect('user:login')
-        
+
+#Get Interaction
+def register_interaction(request, isbn):
+    product = get_object_or_404(Product, isbn=isbn)
+    user = request.user
+
+    interaction, created = Interaction.objects.get_or_create(user=user, product=product)
+    rating_value = 0.0
+    if 'like' in request.POST:
+        interaction.liked = True
+        rating_value = interaction.calculate_interaction_value()
+    elif 'add_to_cart'in request.POST:
+        interaction.added_to_cart = True
+        rating_value = interaction.calculate_interaction_value()
+    elif 'click' in request.POST:
+        interaction.clicks += 1
+        if 'time_spent' in request.POST:
+            interaction.time_spent += float(request.POST['time_spent'])
+            rating_value = interaction.calculate_interaction_value()
+
+    interaction.save()
+
+    # Update or create the rating
+    rating, created = Rating.objects.get_or_create(user=user, product=product)
+    rating.update_rating(rating_value)
+
+    return JsonResponse({
+        'status': 'success',
+        'rating':rating.rating
+    })
+    
+            
+
+
 # UpdateView - Update an existing object
 #class YourModelUpdateView(UpdateView):
 #    model = YourModel
