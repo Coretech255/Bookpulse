@@ -6,14 +6,18 @@
           <a class="text-muted blog-header-logo" href="{% url 'shop:index' %}"><h1>BookPULSE</h1></a>
         </div>
         <div class="col-4 text-center">
+          <form method="GET" action="{% url 'shop:product-search' %}">
           <div class="form-inline search-form">
             <div class="input-group">
-                <div class="input-group-prepend">
+                <button type="submit" class="input-group-prepend btn btn-sm">
                     <span class="input-group-text search-icon">
                         <i class="fas fa-search"></i>
                     </span>
-                </div>
-                <input type="text" class="form-control custom-input" name="" id="" placeholder="Search books by title, author, or ISBN">
+                </button>
+                  <input type="text" class="form-control custom-input" 
+                  name="q" id="" value="{{ request.GET.q }}"
+                  placeholder="Search for products...">
+    </form>
             </div>
           </div>
         </div>
@@ -52,7 +56,9 @@
           <a class="p-2 nav-item" href="#">All</a>
           <a class="p-2 nav-item" href="#">New Release</a>
           <a class="p-2 nav-item" href="#">Bestsellers</a>
-          <a class="p-2 nav-item" href="#">Recommended</a>
+          {% if user.is_authenticated %}
+            <a class="p-2 nav-item" href="{% url 'shop:recommendations' user_id=request.user.id %}">Recommended</a>
+          {% endif %}
           <a class="p-2 nav-item" href="#">Fiction</a>
           <a class="p-2 nav-item" href="#">Business</a>
           <a class="p-2 nav-item" href="#">Politics</a>

@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
+import pandas as pd
+from django.db.models import Q
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from cart.forms import CartAddProductForm
 from .forms import RatingForm
@@ -7,7 +9,12 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from .models import Product, Interaction, Rating
 from cart.cart import Cart
+import pandas as pd
+from .models import Rating
+from surprise import Dataset, Reader, SVDpp
+from surprise.model_selection import train_test_split
 from django.shortcuts import render
+from .recommendation import load_data, train_algorithm, get_top_n_recommendations
 
 # Create your views here.
 
@@ -22,10 +29,28 @@ class ProductListView(ListView):
     model = Product
     template_name = 'shop/index.html'
     context_object_name = 'products'
+    paginate_by = 30
 
     def get_queryset(self):
-        # Fetch the first 5 products (you can adjust the number as needed)
-        return Product.objects.all()[:25]
+        return Product.objects.all()
+    
+
+class ProductSearchListView(ListView):
+    model = Product
+    template_name = 'shop/search_results.html'
+    context_object_name = 'products'
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Product.objects.filter(
+                Q(title__icontains=query) |
+                Q(author__icontains=query) |
+                Q(isbn__icontains=query)
+            )
+        return Product.objects.none()  # Return an empty queryset if no query
+
 
 
 # DetailView - Display details of a single object
@@ -42,6 +67,7 @@ class ProductDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        product = self.object
 
         # Add additional context data here
         cart_product_form = CartAddProductForm()
@@ -49,7 +75,72 @@ class ProductDetailView(DetailView):
         context['related_products'] = Product.objects.exclude(id=self.object.id)[:5]  # Exclude the current product and select some other products
         context['rating_form'] = RatingForm()
         context['ratings'] = Rating.objects.filter(product=self.object)
+
+        # Fetch the current book
+
+        # Get the user ID (assuming the user is logged in)
+        user_id = self.request.user.id
+
+        # load data and train the algorithm
+        data, df = self.load_data()
+
+        algo = self.train_algorithm(data)
+
+        # Get top N recommendations for the user
+        recommendations = self.get_top_n_recommendations(algo, user_id, df, n=10)
+        
+        # Retrieve the recommended books
+        recommended_books = Product.objects.filter(isbn__in=recommendations)
+        
+        # Add the recommended books to the context
+        context['recommended_books'] = recommended_books
+
         return context
+    
+    def load_data(self):
+        # Load data from the Rating model
+        ratings = Rating.objects.all().values('user_id', 'product_id', 'rating')
+        df = pd.DataFrame(list(ratings))
+        
+        # Define the rating scale and load data into a Surprise dataset
+        reader = Reader(rating_scale=(1, 5))
+        data = Dataset.load_from_df(df[['user_id', 'product_id', 'rating']], reader)
+        return data, df
+    
+
+    def train_algorithm(self, data):
+    # Use the SVD++ algorithm
+        algo = SVDpp()
+        
+        # Train the algorithm on the entire dataset
+        trainset = data.build_full_trainset()
+        algo.fit(trainset)
+        
+        return algo
+
+    def get_top_n_recommendations(self, algo, user_id, df, n=10):
+        # Get a list of all book_ids
+        all_books = df['product_id'].unique()
+        
+        # Get the books the user has already rated
+        rated_books = df[df['user_id'] == user_id]['product_id']
+
+        if rated_books.empty:
+            return JsonResponse({"message": "No Books Recommended!. <br> Click and like a book to get recommendation"})
+        
+        # Remove already rated books from the list of all books
+        books_to_predict = [book for book in all_books if book not in rated_books.values]
+
+        
+        # Predict ratings for each book the user hasn't rated yet
+        predictions = [algo.predict(user_id, book_id) for book_id in books_to_predict]
+        
+        # Sort the predictions by the estimated rating
+        predictions.sort(key=lambda x: x.est, reverse=True)
+        
+        # Return the top N book_ids
+        top_n_books = [pred.iid for pred in predictions[:n]]
+        return top_n_books
 
 
     def post(self, request, *args, **kwargs):
@@ -101,16 +192,17 @@ def register_interaction(request, isbn):
     
             
 
-
-# UpdateView - Update an existing object
-#class YourModelUpdateView(UpdateView):
-#    model = YourModel
-#    template_name = 'yourapp/yourmodel_form.html'
-#    fields = '__all__'
-
-# DeleteView - Delete an existing object
-#class YourModelDeleteView(DeleteView):
-#    model = YourModel
-#    template_name = 'yourapp/yourmodel_confirm_delete.html'
-#    success_url = reverse_lazy('yourmodel-list')  # Redirect to the list view after deletion
+def recommend_books_view(request, user_id):
+    # Load data and train the algorithm
+    data, df = load_data()
+    algo = train_algorithm(data)
+    
+    # Get top 10 recommendations for the user
+    recommendations = get_top_n_recommendations(algo, user_id, df, n=30)
+    
+    # Retrieve the book objects for the recommended book_ids
+    recommended_books = Product.objects.filter(isbn__in=recommendations)
+    
+    # Render the template with the recommended books
+    return render(request, 'shop/recommendations.html', {'recommended_books': recommended_books})
 

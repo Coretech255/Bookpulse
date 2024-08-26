@@ -37,6 +37,7 @@
         </div>
     </div>
 
+
     <!-- Display existing reviews-->
      <ul>
     
@@ -52,13 +53,39 @@
 
     <!-- Related Books Section -->
     <div class="row row-two mt-5">
+        {% if recommended_books %}
+        <h1 class="h3">Recommended Books</h1>
+        {% for recommended_book in recommended_books %}
+        <div class="col col-md-2">
+            <div class="card" style="width: 11rem;">
+                <img class="card-img-top" src="{{ recommended_book.cover_photo_url }}" alt="{{recommended_book.title}}">
+                <div class="card-body">
+                <a href="{% url 'shop:product_detail' recommended_book.isbn %}" class="card-text text text-center">{{ recommended_book.title|truncatechars:20 }} - by 
+                    {{ recommended_book.author }}
+                </a>
+                <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
+                <div class="d-flex justify-content-between price-cart">
+                    <p class="card-price text-center"><i class="fa-solid fa-naira-sign"></i> {{ recommended_book.price }}</p>
+                    <div class="icon">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <!-- Related Books Section -->
+    <!-- Related Books Section -->
+    <div class="row row-two mt-5">
         <h1 class="h3">Related Books</h1>
         {% for related_product in related_products %}
         <div class="col col-md-2">
             <div class="card" style="width: 11rem;">
                 <img class="card-img-top" src="{{ related_product.cover_photo_url }}" alt="Card image cap">
                 <div class="card-body">
-                <a href="{% url 'shop:product_detail' related_product.id %}" class="card-text text text-center">{{ related_product.title|truncatechars:20 }} - by 
+                <a href="{% url 'shop:product_detail' related_product.isbn %}" class="card-text text text-center">{{ related_product.title|truncatechars:20 }} - by 
                     {{ related_product.author }}
                 </a>
                 <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>

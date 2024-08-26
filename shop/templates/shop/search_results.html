@@ -1,0 +1,56 @@
+{% extends 'root/_base.html' %}
+{% load static %}
+{% block title %} Search Results {% endblock %}
+{% block style %} <link rel="stylesheet" href="{% static 'css/homepage.css' %}"> {% endblock %}
+
+{% block content %}
+    <section class="container-fluid search-results">
+        <h4>Search Results</h4>
+        <br>
+        {% if request.GET.q %}
+            <h3>Results for "{{ request.GET.q }}"</h3>
+        {% else %}
+            <h3>No search query provided</h3>
+        {% endif %}
+
+        <div class="row">
+            {% for product in products %}
+                <div class="col col-md-2 mb-5">
+                    <div class="card" style="width: 11rem;">
+                        <img class="card-img-top" src="{{ product.cover_photo_url }}" alt="Card image cap">
+                        <div class="card-body">
+                            <a href="{% url 'shop:product_detail' product.isbn %}" 
+                               class="card-text text text-center click-interaction product-link" 
+                               data-isbn="{{ product.isbn }}"
+                               onclick="registerInteraction('{{ product.isbn }}', 'click')"
+                            >
+                                {{ product.title|truncatechars:20 }} - by 
+                                {{ product.author }} | <i class="fa-solid fa-dollar-sign"></i> {{ product.price }}
+                            </a>
+                            <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No products found matching your search criteria.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination controls -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if products.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </section>
+{% endblock %}
