@@ -6,6 +6,9 @@
 
 
 {% block content %}
-    <h1>Your payment was successful</h1>
-    <p>Your payment has been processed successfully.</p>
+    <div class="container mt-5">
+        <h3 class="text-success">Payment Successful</h3>
+        <p>Your payment has been processed successfully.</p>
+        <a href="{% url 'shop:index' %}" class="btn btn-sm text-white">Return to HomePage</a>
+    </div>
 {% endblock %}

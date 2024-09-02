@@ -2,7 +2,6 @@ from django.db import models
 from user.models import CustomUser
 
 
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -10,14 +9,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-
-class Author(models.Model):
-    name = models.CharField(max_length=200)
-    bio = models.TextField()
-    author_image = models.ImageField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
 
 
 class Product(models.Model):
@@ -72,16 +63,11 @@ class Rating(models.Model):
     #    unique_together = ('user', 'product', 'rating')
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} - {self.product.title} - {self.rating}"
+        user_name = f"{self.user.first_name} {self.user.last_name}" if self.user else "Anonymous"
+        return f"{user_name} - {self.product.title} - {self.rating}"
 
     def update_rating(self, rating_value):
         self.rating = min(round(rating_value, 1), 10.0)
         self.save()
 
-
-    #@classmethod
-    #def update_or_create_rating(cls, user, product):
-        #rating, created = cls.objects.get_or_create(user=user, product=product)
-        #rating.calculate_interaction_rating()
-        #return rating
 

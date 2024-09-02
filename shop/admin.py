@@ -1,7 +1,7 @@
 import logging
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
-from .models import Product, Category, Rating, Author, Interaction
+from .models import Product, Category, Rating, Interaction
 from .resources import RatingResource
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,9 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 # Register the Product model with the custom admin class
 admin.site.register(Product, ProductAdmin)
 
+class CategoryAdmin(admin.ModelAdmin):
+     list_display = ('name', 'description',)
+admin.site.register(Category, CategoryAdmin)
 
 class RatingAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_class = RatingResource
