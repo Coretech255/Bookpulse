@@ -6,9 +6,13 @@ from cart.cart import Cart
 
 def order_create(request):
     cart = Cart(request)
+
+        # Check if cart is empty
+    if len(cart) == 0:
+        return redirect(reverse('cart:cart_detail'))
+    
     if request.method == 'POST':
         form = OrderCreateForm(request.POST)
-        print(form, 'form')
         if form.is_valid():
             order = form.save()
             for item in cart:
@@ -19,13 +23,13 @@ def order_create(request):
             # clear the cart
             cart.clear()
 
-        #set the order in the session
-        request.session['order_id'] = order.id
-        #redirect for payment
-        return redirect(reverse('payment:process'))
+            #set the order in the session
+            request.session['order_id'] = order.id
+            #redirect for payment
+            return redirect(reverse('payment:process'))
     else:
         form = OrderCreateForm()
-        return render(request,
+    return render(request,
                       'orders/order.html',
                         {'cart': cart})
 

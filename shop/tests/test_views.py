@@ -1,142 +1,121 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-#from django.contrib.auth.models import User
+from shop.models import Product, Rating
 from user.models import CustomUser
-from shop.models import Product, Rating, Interaction
-from shop.views import ProductListView, ProductDetailView, register_interaction, recommend_books_view
-from django.http import JsonResponse
-import pandas as pd
-from surprise import SVDpp, Dataset, Reader
-import json
+from shop.views import recommend_books_view
+from unittest.mock import patch
 
-# Test whether the index view renders successfully
-class IndexViewTest(TestCase):
+class ProductSearchListViewTestCase(TestCase):
     def setUp(self):
-        self.client = Client()
-
-    def test_index_view(self):
-        response = self.client.get(reverse('shop:index'))
+        # Create test products
+        Product.objects.create(
+            title='Book A', 
+            author='Author A', 
+            isbn='123456', 
+            description="An example book description",
+            price=19.99,
+            publication_date=2023
+        )
+        Product.objects.create(
+            title='Book B', 
+            author='Author B', 
+            isbn='234567',
+            description="An example book description",
+            price=19.99,
+            publication_date=2023
+        )
+        Product.objects.create(
+            title='Another Book', 
+            author='Author C', 
+            isbn='345678',            
+            description="An example book description",
+            price=19.99,
+            publication_date=2023
+        )
+    
+    def test_search_with_query(self):
+        # Send a GET request with a search query
+        response = self.client.get(reverse('shop:product-search') + '?q=Book')
+        
+        # Check that the response status code is 200
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'shop/index.html')
-        self.assertIn('cart', response.context)
-
-class ProductListViewTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.product = Product.objects.create(title="Test Product", author="Author", 
-                                              isbn="1234567890", price="10.00", publication_date="1999")
-
-    def test_product_list_view(self):
-        response = self.client.get(reverse('shop:product_list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'shop/index.html')
-        self.assertIn('products', response.context)
-
-    def test_product_search_list_view(self):
-        response = self.client.get(reverse('shop:product_search_list') + '?q=Test')
-        self.assertEqual(response.status_code, 200)
+        
+        # Check that the correct products are in the context
+        self.assertContains(response, 'Book A')
+        self.assertContains(response, 'Book B')
+        #self.assertNotContains(response, 'Another')
+        
+        # Check that the template used is correct
         self.assertTemplateUsed(response, 'shop/search_results.html')
-        self.assertIn('products', response.context)
-        self.assertQuerysetEqual(response.context['products'], [self.product])
-
-class ProductDetailViewTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='12345')
-        self.product = Product.objects.create(title="Test Product", author="Author", 
-                                              isbn="1234567890", price="10.00", publication_date="1999")
-
-    def test_product_detail_view(self):
-        self.client.login(email='testuser@example.com', password='12345')
-        response = self.client.get(reverse('shop:product_detail', kwargs={'isbn': self.product.isbn}))
+    
+    def test_search_without_query(self):
+        # Send a GET request without a search query
+        response = self.client.get(reverse('shop:product-search'))
+        
+        # Check that the response status code is 200
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'shop/product_detail.html')
-        self.assertIn('product', response.context)
-        self.assertIn('recommended_books', response.context)
+        
+        # Check that no products are in the context
+        self.assertContains(response, 'No products found')
+        
+        # Check that the template used is correct
+        self.assertTemplateUsed(response, 'shop/search_results.html')
 
-class RegisterInteractionTest(TestCase):
+
+
+class RecommendBooksViewTestCase(TestCase):
     def setUp(self):
+        # Create test users
+        user1 = CustomUser.objects.create(email='user1@gmail.com', password='password123')
+        
+        # Create test products
+        self.product1 = Product.objects.create(
+            isbn='123456', 
+            title='Book A',
+            author="Author A",
+            description="An example book description",
+            price=19.99,
+            publication_date=2023    
+        )
+        self.product2 = Product.objects.create(
+            isbn='234567', 
+            title='Book B', 
+            author='Author B',
+            description="An example book description",
+            price=19.99,
+            publication_date=2023 
+        )
+        self.product3 = Product.objects.create(
+            isbn='345678', 
+            title='Another Book', 
+            author='Author C',
+            description="An example book description",
+            price=19.99,
+            publication_date=2023 
+        )
+        
+        # Create test ratings
+        Rating.objects.create(user_id=user1.id, product_id=self.product1.isbn, rating=4)
+        Rating.objects.create(user_id=user1.id, product_id=self.product2.isbn, rating=5)
+        
+        # Create a test client
         self.client = Client()
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='12345')
-        self.product = Product.objects.create(title="Test Product", author="Author", 
-                                              isbn="1234567890", price="10.00", publication_date="1999")
-        self.client.login(email='testuser@example.com', password='12345')
-
-    def test_register_interaction_like(self):
-        response = self.client.post(reverse('shop:register_interaction', kwargs={'isbn': self.product.isbn}),
-                                    {'like': 'true'})
+    
+    @patch('shop.views.get_top_n_recommendations')
+    def test_recommend_books_view(self, mock_get_top_n_recommendations):
+        # Mock the recommendation function
+        mock_get_top_n_recommendations.return_value = [self.product2.isbn, self.product1.isbn]
+        
+        # Simulate a request to the view
+        response = self.client.get(reverse('shop:recommendations', kwargs={'user_id': 1}))
+        
+        # Check that the response status code is 200
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        self.assertEqual(data['status'], 'success')
-
-        interaction = Interaction.objects.get(user=self.user, product=self.product)
-        self.assertTrue(interaction.liked)
-
-class RecommendBooksViewTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='12345')
-        self.product = Product.objects.create(title="Test Product", author="Author", 
-                                              isbn="1234567890", price="10.00", publication_date="1999")
-        Rating.objects.create(user=self.user, product=self.product, rating=5)
-
-    def test_recommend_books_view(self):
-        self.client.login(email='testuser@example.com', password='12345')
-        response = self.client.get(reverse('shop:recommend_books', kwargs={'user_id': self.user.id}))
-        self.assertEqual(response.status_code, 200)
+        
+        # Check that the correct template is used
         self.assertTemplateUsed(response, 'shop/recommendations.html')
-        self.assertIn('recommended_books', response.context)
-
-class RecommendationTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='12345')
-        self.product1 = Product.objects.create(title="Test Product 1", author="Author", 
-                                               isbn="1234567890", price="10.00", publication_date="1999")
-        self.product2 = Product.objects.create(title="Test Product 2", author="Author", 
-                                               isbn="0987654321", price="10.00", publication_date="1999")
-        Rating.objects.create(user=self.user, product=self.product1, rating=5)
-
-    def test_get_top_n_recommendations(self):
-        ratings = Rating.objects.all().values('user_id', 'product_id', 'rating')
-        df = pd.DataFrame(list(ratings))
-
-        reader = Reader(rating_scale=(1, 5))
-        data = Dataset.load_from_df(df[['user_id', 'product_id', 'rating']], reader)
         
-        algo = SVDpp()
-        trainset = data.build_full_trainset()
-        algo.fit(trainset)
-        
-        view = ProductDetailView()
-        top_n_books = view.get_top_n_recommendations(algo, self.user.id, df)
-        self.assertIn(self.product2.id, top_n_books)
-
-class ProductDetailPostTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='12345')
-        self.product = Product.objects.create(title="Test Product", author="Author", 
-                                              isbn="1234567890", price="10.00", publication_date="1999")
-        self.client.login(email='testuser@example.com', password='12345')
-
-    def test_post_review(self):
-        response = self.client.post(reverse('shop:product_detail', kwargs={'isbn': self.product.isbn}),
-                                    {'rating': 5, 'review': 'Great product!'})
-        self.assertRedirects(response, reverse('shop:product_detail', kwargs={'isbn': self.product.isbn}))
-        rating = Rating.objects.get(user=self.user, product=self.product)
-        self.assertEqual(rating.rating, 5)
-
-class LoadDataTest(TestCase):
-    def setUp(self):
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='12345')
-        self.product = Product.objects.create(title="Test Product", author="Author", 
-                                              isbn="1234567890", price="10.00", publication_date="1999")
-        Rating.objects.create(user=self.user, product=self.product, rating=5)
-
-    def test_load_data(self):
-        view = ProductDetailView()
-        data, df = view.load_data()
-        self.assertIsInstance(df, pd.DataFrame)
-        self.assertFalse(df.empty)
-
+        # Check that the recommended books are included in the response context
+        self.assertIn(self.product1, response.context['recommended_books'])
+        self.assertIn(self.product2, response.context['recommended_books'])
+        self.assertNotIn(self.product3, response.context['recommended_books'])

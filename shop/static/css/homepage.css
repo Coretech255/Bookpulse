@@ -70,7 +70,7 @@
     position: absolute !important;
     top: 0;
     right: 0;
-    background-color: var(--main-btn-color-light);
+    background-color: var(--main-btn-color);
     color: var(--main-text-color-white);
     padding: 5px;
 }

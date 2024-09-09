@@ -19,9 +19,22 @@
                     </span><span class="text-muted h5">(Author)</span>
                 </h1>
                 <p class="" style="font-size: .9rem; font-weight: 500; line-height: 1.7rem;">{{ product.description }}</p>
-                <p class="h6">Product Type: {{ product.type }}Digital</p>
-                <p class="h6">Book Rating: <i class="fa-solid fa-star mb-2"></i>5{{ product.rating }}/5</p>
-                <button onclick="registerInteraction('{{product.isbn}}', 'like')" class="btn btn-success" value="Like">Like</button>
+                <p class="h6" id="rating">Book Category: <i class="fa-solid fa-star mb-2"></i>
+                    {% for category in categories %}
+                        <span>{{ category.name }}</span>
+                    {% endfor %}
+                </p>
+                
+                <button 
+                    id="like-button"
+                    class="btn btn-success {% if user_has_liked %} disabled opacity-70 {% endif %}"
+                    value="Like">
+                    {% if user_has_liked %}
+                        Liked
+                    {% else %}
+                        Like
+                    {% endif %}
+                </button>
                 <div class="" style="width:40% !important;">
                     <form action="{% url 'cart:cart_add' product.id %}" class="d-flex justify-content-between" method="post">
                         <div class="d-flex justify-content-between">
@@ -35,12 +48,15 @@
                 </div>
             </div>
         </div>
+        
     </div>
 
 
     <!-- Display existing reviews-->
-     <ul>
-    
+     <br>
+     <hr>
+     <h4 class="btn btn-sm text-white"> Book Rating & Review </h4>
+    <ul>
         {% for rating in ratings %}
             <li>
                 <strong>{{ rating.user.first_name }}</strong> rated {{ rating.rating}}
@@ -49,12 +65,15 @@
             </li>
         {% endfor %}
      </ul>
+     <br>
+     <hr>
     <!-- Display existing reviews-->
 
     <!-- Related Books Section -->
     <div class="row row-two mt-5">
         {% if recommended_books %}
-        <h1 class="h3">Recommended Books</h1>
+        <h1 class="h3" style="color:#002c59;">Recommended Books</h1>
+        <br>
         {% for recommended_book in recommended_books %}
         <div class="col col-md-2">
             <div class="card" style="width: 11rem;">
@@ -63,9 +82,13 @@
                 <a href="{% url 'shop:product_detail' recommended_book.isbn %}" class="card-text text text-center">{{ recommended_book.title|truncatechars:20 }} - by 
                     {{ recommended_book.author }}
                 </a>
-                <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
+                <p class="card-rating text-center">
+                    {% for category in recommended_book.categories.all %}
+                        {{ category.name }}
+                    {% endfor %}
+                </p>
                 <div class="d-flex justify-content-between price-cart">
-                    <p class="card-price text-center"><i class="fa-solid fa-naira-sign"></i> {{ recommended_book.price }}</p>
+                    <p class="card-price text-center">(USD)$ {{ recommended_book.price }}</p>
                     <div class="icon">
                         <i class="fa-solid fa-plus"></i>
                     </div>
@@ -79,7 +102,7 @@
     <!-- Related Books Section -->
     <!-- Related Books Section -->
     <div class="row row-two mt-5">
-        <h1 class="h3">Related Books</h1>
+        <h1 class="h3">Related Books</h1$
         {% for related_product in related_products %}
         <div class="col col-md-2">
             <div class="card" style="width: 11rem;">
@@ -88,7 +111,9 @@
                 <a href="{% url 'shop:product_detail' related_product.isbn %}" class="card-text text text-center">{{ related_product.title|truncatechars:20 }} - by 
                     {{ related_product.author }}
                 </a>
-                <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
+                <p class="card-rating text-center"> {% for category in related_product.categories.all %}
+                    {{ category.name }}
+                    {% endfor %}</p>
                 <div class="d-flex justify-content-between price-cart">
                     <p class="card-price text-center"><i class="fa-solid fa-naira-sign"></i> {{ related_product.price }}</p>
                     <div class="icon">
@@ -102,6 +127,10 @@
     </div>
     <!-- Related Books Section -->
 
+    <div class="testsocket" id="recommendations">
+        <h1>Test SAocket</h1>
+    </div>
+
 <!-- Review Form -->
  <br>
  <br>
@@ -114,95 +143,72 @@
 <!-- Review Form -->
 </div>
 
+<script>
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/interaction/');
+    console.log('connected')
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
 
-<!--script>
-    console.log('websocket')
+        if (data) {
+            console.log('data')
+        }
+        console.log(data, 'Data is absent')
 
-    // Ensure that productID and userID are correctly initialized
-    const productID = {{ product.id|default:"null" }};
-    const userID = {{ user.id|default:"null" }};
+        if (data.status === 'success') {
+            if (data.rating) {
+                // Update rating in the UI
+                document.getElementById('rating').innerText = `Rating: ${data.rating}`;
 
-    // Check if the variables are properly defined
-    if (productID !== "null" && userID !== "null") {
-        const socket = new WebSocket(
-            'ws://' + window.location.host + '/ws/interactions/' + productID + '/'
-        );
-
-        socket.onopen = function(event) {
-            console.log('WebSocket is connected.');
-        };
-
-        socket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.product_id == productID) {
-                console.log('Updated Rating: ', data.rating);
-                // Ensure the element with id='rating' exists in your HTML
-                const ratingElement = document.getElementById('rating');
-                if (ratingElement) {
-                    ratingElement.innerText = 'Rating: ' + data.rating;
+                if(data.action === 'like'){
+                    const likeButton = document.getElementById('like-button');
+                    likeButton.classList.add('disabled opacity-70');
                 }
             }
-        };
 
-        // Listen for clicks specifically on product-related interactions
-        document.querySelector('.add-to-cart-button').addEventListener('click', function(event) {
-            socket.send(JSON.stringify({
-                'type': 'click',
-                'product_id': productID,
-            }));
-        });
+            if (data.recommendations) {
+                // Update recommendations in the UI
+                const recommendationsList = document.getElementById('recommendations');
+                recommendationsList.innerHTML = '';
 
-        // Monitor time spent on the page
-        let timeSpent = 0;
-        setInterval(function() {
-            timeSpent += 1;
-            socket.send(JSON.stringify({
-                'type': 'time_spent',
-                'product_id': productID,
-                'value': timeSpent
-            }));
-            timeSpent = 0;
-        }, 60000);
-
-        // Monitor scroll depth
-        window.onscroll = function() {
-            let scrollDepth = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
-            socket.send(JSON.stringify({
-                'type': 'scroll',
-                'product_id': productID,
-                'value': scrollDepth * 100  // send as percentage
-            }));
-        };
-
-        // Handle "Add to Cart" button click
-        document.querySelector('.add-to-cart-button').addEventListener('click', function() {
-            socket.send(JSON.stringify({
-                'type': 'add_to_cart',
-                'product_id': productID,
-            }));
-        });
-
-        // Handle "Purchase" button click if it exists
-        const purchaseButton = document.querySelector('.purchase-button');
-        if (purchaseButton) {
-            purchaseButton.addEventListener('click', function() {
-                socket.send(JSON.stringify({
-                    'type': 'purchase',
-                    'product_id': productID,
-                }));
-            });
+                data.recommendations.forEach(book => {
+                    const li = document.createElement('li');
+                    li.innerText = `${book.title} (ISBN: ${book.isbn})`;
+                    recommendationsList.appendChild(li);
+                });
+            }
         }
-    } else {
-        socket.onerror = function(error) {
-            console.error('WebSocket error:', error);
-        };
+    };
 
-        socket.onclose = function(event) {
-            console.log('WebSocket connection closed:', event);
-        };
-
+    function registerInteraction(isbn, action, time_spent = 0) {
+        socket.send(JSON.stringify({
+            'isbn': isbn,
+            'action': action,
+            'time_spent': time_spent
+        }));
     }
-</script-->
 
-{% endblock content%}
+        // Example: Register a 'like' interaction when the like button is clicked
+    document.getElementById('like-button').addEventListener('click', function() {
+        registerInteraction('{{ product.isbn }}', 'like');
+    });
+
+    /*// Example: Register an 'add to cart' interaction when the add to cart button is clicked
+    document.getElementById('add-to-cart-button').addEventListener('click', function() {
+        registerInteraction('{{ product.isbn }}', 'add_to_cart');
+    });
+    
+            // Example: Track time spent on the product page
+    /*let startTime = Date.now();
+    //window.addEventListener('beforeunload', function() {
+     //   let timeSpent = (Date.now() - startTime) / 1000; // Convert to seconds
+       // registerInteraction('{{ product.isbn }}', 'click', time_spent = timeSpent);
+    //});
+
+    //onclick="registerInteraction('{{product.isbn}}', 'like')" */
+
+</script>
+
+{% endblock %}
+
+
 

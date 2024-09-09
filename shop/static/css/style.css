@@ -7,8 +7,8 @@
 
 
 
-  --main-btn-color: #c66e4e;
-  --main-btn-color-light: hsla(16, 51%, 54%, 0.603);
+  --main-btn-color: /*#60809e#c66e4e; hsla(16, 51%, 54%, 0.603)*/#002c59;
+  --main-btn-color-light: #86bad8;
   --main-btn-color-sm: rgb(106, 67, 37);
   --main-btn-color-md: #60809e;
 }

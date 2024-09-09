@@ -30,7 +30,11 @@
                             >{{ product.title|truncatechars:20 }} - by 
                                 {{ product.author }} | <i class="fa-solid fa-dollar-sign"></i> {{ product.price }}
                             </a>
-                            <p class="card-rating text-center"><i class="fa-solid fa-star"></i> 5</p>
+                            <p class="card-rating text-center">
+                                {% for category in product.categories.all %}
+                                    {{ category.name }}
+                                {% endfor %}
+                            </p>
                             </div>
 
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"> 

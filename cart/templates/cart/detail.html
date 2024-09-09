@@ -44,8 +44,8 @@
                 </td>
 
                 
-                <td class="num"><i class="fa-solid fa-naira-sign"></i> {{ item.price }}</td>
-                <td class="num"><i class="fa-solid fa-naira-sign"></i> {{ item.total_price }}</td>
+                <td class="num">(USD)$ {{ item.price }}</td>
+                <td class="num">(USD)$ {{ item.total_price }}</td>
                 
                 <td>
                     <form action="{% url 'cart:cart_remove' product.id %}"
@@ -63,7 +63,7 @@
               <tr class="total">
                   <td>Total</td>
                   <td colspan="4"></td>
-                  <td class="num"><i class="fa-solid fa-naira-sign"></i> {{ cart.get_total_price }}</td>
+                  <td class="num">(USD)$ {{ cart.get_total_price }}</td>
               </tr>
             </tbody>
          </table>

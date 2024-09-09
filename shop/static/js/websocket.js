@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function(){
         console.log(isbn)
         const href = this.href
 
-        registerInteraction(isbn, 'click');
+        //registerInteraction(isbn, 'click');
 
         setTimeout(() => {
             window.location.href = href

@@ -40,7 +40,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'jazzmin',
-    'channels',
+    'daphne',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -73,6 +73,16 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Configure Redis as the channel layer backend
+#CHANNEL_LAYERS = {
+#    'default': {
+#        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#        'CONFIG': {
+#            "hosts": [('127.0.0.1', 6379)],
+#        },
+#    },
+#}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -102,6 +112,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'bookpulse.wsgi.application'
+
 
 
 # Database
@@ -271,7 +282,7 @@ JAZZMIN_SETTINGS = {
     "default_icon_children": "fas fa-circle",
 
     # Keep the same app ordering as above, but also order choice and book model links within the books app
-    "order_with_respect_to": ["auth", "shop.product", "shop.rating"],
+    "order_with_respect_to": ["shop", "orders", "user",],
 
     "related_modal_active": True,
 

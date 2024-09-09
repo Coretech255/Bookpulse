@@ -69,12 +69,16 @@ class ProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         product = self.object
 
+        # Check if the current user has liked this product
+        user_has_liked = Interaction.objects.filter(user=self.request.user, product=product, liked=True).exists()
         # Add additional context data here
         cart_product_form = CartAddProductForm()
         context['cart_product_form'] = cart_product_form
         context['related_products'] = Product.objects.exclude(id=self.object.id)[:5]  # Exclude the current product and select some other products
         context['rating_form'] = RatingForm()
         context['ratings'] = Rating.objects.filter(product=self.object)
+        context['user_has_liked'] = user_has_liked
+        context['categories'] = self.object.categories.all()  # Load categories
 
         # Fetch the current book
 
